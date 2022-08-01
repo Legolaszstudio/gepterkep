@@ -38,6 +38,7 @@ class FloorplanView extends React.Component {
         this.attachCustomHandlers = this.attachCustomHandlers.bind(this);
         this.attachMarkerClick = this.attachMarkerClick.bind(this);
         this.moveBtnHandler = this.moveBtnHandler.bind(this);
+        this.exportClicked = this.exportClicked.bind(this);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -599,6 +600,41 @@ class FloorplanView extends React.Component {
         });
     }
 
+    async exportClicked() {
+        const res = await Swal.fire({
+            title: "Export módja",
+            confirmButtonText: "gepmap fájl",
+            showDenyButton: true,
+            denyButtonText: "fénykép fájl",
+            denyButtonColor: "rgb(175,175,175)"
+        });
+        showSpinner();
+        if (res.isConfirmed) {
+            exportFile();
+        } else if (res.isDenied) {
+            const image = this.canvas.toDataURL({
+                format: 'png',
+                quality: 1,
+            });
+            const element = document.createElement('a');
+            element.setAttribute('href', image);
+            let filename;
+            // eslint-disable-next-line eqeqeq
+            if (this.state.data == this.state.floorplan){
+                filename = this.state.floorplan.name + ".png";
+            } else {
+                filename = this.state.data.custom.name + ".png";
+            }
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+        
+            element.click();
+            document.body.removeChild(element);
+        }
+        hideSpinner();
+    }
+
     moveBtnHandler() {
         window.unlocked = !window.unlocked;
         this.setState({});
@@ -612,7 +648,7 @@ class FloorplanView extends React.Component {
                         <input type="button" className="btn btn-green mr-2" value="Új terület" onClick={this.newAreaPrepare}></input>
                         <input type="button" className="btn btn-green mr-2" value="Új marker" onClick={this.newMarker}></input>
                         <input type="button" className={`btn ${window.unlocked ? "btn-red" : "btn-green"} mr-2`} value={window.unlocked ? "Mozgatás vége" : "Mozgatás"} id="moveBtn" onClick={this.moveBtnHandler}></input>
-                        <input type="button" className="btn btn-blue mr-2" value="Export" onClick={exportFile}></input>
+                        <input type="button" className="btn btn-blue mr-2" value="Export" onClick={this.exportClicked}></input>
                     </div>
                     <div id="newAreabtn" className="hide">
                         <input type="button" id="newAreabtn-done" className="btn btn-green mr-2" value="Kész"></input>
