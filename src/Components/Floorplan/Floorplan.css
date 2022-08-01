@@ -1,0 +1,17 @@
+.FloorplanList {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.plusBtn {
+    height: 150px;
+    width: 150px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+}

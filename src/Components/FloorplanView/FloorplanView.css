@@ -1,0 +1,27 @@
+/* Bootsrap 5 Navbar */
+.floorplanview-toolbar {
+    padding: 0.5rem 1rem;
+    background-color: rgb(44, 47, 49) !important;
+}
+
+.bgProvider {
+    width: auto;
+    height: 100vh;
+}
+
+.canvasWrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+}
+
+.markerSelector {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-around;
+    align-items: center;
+}

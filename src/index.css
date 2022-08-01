@@ -1,0 +1,139 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #9e9e9e;
+}
+
+html {
+  width: 100vw;
+  height: 100vh;
+}
+
+body,
+#root,
+.App {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.hide {
+  display: none;
+}
+
+.fadein {
+  animation: fadein 0.25s ease;
+}
+
+@keyframes fadein {
+  from {
+      opacity: 0;
+  }
+  to {
+      opacity: 1;
+  }
+}
+
+.fadeout {
+  animation: fadeout 0.25s ease;
+}
+
+@keyframes fadeout {
+  from {
+      opacity: 1;
+  }
+  to {
+      opacity: 0;
+  }
+}
+
+
+/* Bootstrap 5 btn*/
+.btn {
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  border: 1px solid transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+  cursor: pointer;
+}
+
+.btn-green {
+  color: black;
+  background-color: #66bb6a;
+  border-color: #66bb6a;
+}
+
+.btn-green:hover {
+  background-color: rgba(0, 0, 0, 0) !important;
+  color: white !important;
+}
+
+.btn-red {
+  color: black;
+  background-color: rgb(223, 70, 85);
+  border-color: rgb(223, 70, 85);
+}
+
+.btn-red:hover {
+  background-color: rgba(0, 0, 0, 0) !important;
+  color: white !important;
+}
+
+.btn-blue {
+  color: black;
+  background-color: #42a5f5;
+  border-color: #42a5f5;
+}
+
+.btn-blue:hover {
+  background-color: rgba(0, 0, 0, 0) !important;
+  color: white !important;
+}
+
+.mr-2 {
+  margin-right: 10px;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+.cp {
+  cursor: pointer;
+}
+
+.floorplanCard {
+  text-align: center;
+  padding: 10px;
+  cursor: pointer;
+  background-color: grey;
+}
+
+.floorPrevImg {
+  width: 150px;
+  height: auto;
+}
