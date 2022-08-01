@@ -60,10 +60,10 @@ class Search extends React.Component {
         this.setState({
             results: searchObjs.filter(obj => obj.name.toLowerCase().includes(val.toLowerCase()))
         });
-        await delay(5);
 
         const searchInCustomFields = document.getElementById("sInField").checked;
         if (searchInCustomFields) {
+            await delay(5);
             const inFieldResult = searchObjs.filter(obj =>
                 obj.fields.some(x =>
                     typeof x.value === 'boolean' ? false : x.value.toLowerCase().includes(val.toLowerCase())
@@ -78,12 +78,12 @@ class Search extends React.Component {
                 results: this.state.results,
             });
         }
-        await delay(5);
 
         const searchInPath = document.getElementById("sInPath").checked;
         if (searchInPath) {
+            await delay(5);
             const pathResult = searchObjs.filter(obj =>
-                obj.path.toLowerCase().includes(val.toLowerCase())
+                decodeURIComponent(obj.path).toLowerCase().includes(val.toLowerCase())
             );
             for (const item of pathResult) {
                 if (!this.state.results.some(x => x.name === item.name)) {
@@ -92,6 +92,16 @@ class Search extends React.Component {
             }
             this.setState({
                 results: this.state.results,
+            });
+        }
+
+        const sortResults = document.getElementById("sortRes").checked;
+        if (sortResults) {
+            await delay(5);
+            let temp = this.state.results;
+            temp.sort((a, b) => a.path.localeCompare(b.path) || a.name.localeCompare(b.name));
+            this.setState({
+                results: temp,
             });
         }
     }
@@ -144,7 +154,11 @@ class Search extends React.Component {
                             <input type="checkbox" id="sInPath" value="1" defaultChecked></input>
                             <label htmlFor="sInPath">Keresés útvonalban is</label>
                         </div>
-                        <select id="searchFilter" onChange={() => {this.searchUpdate({target: {value: document.getElementById('mainInput').value}})}}>
+                        <div>
+                            <input type="checkbox" id="sortRes" value="1" defaultChecked></input>
+                            <label htmlFor="sortRes">Találatok rendezése</label>
+                        </div>
+                        <select id="searchFilter" onChange={() => { this.searchUpdate({ target: { value: document.getElementById('mainInput').value } }) }}>
                             <option value="all">Minden</option>
                         </select>
                     </div>
