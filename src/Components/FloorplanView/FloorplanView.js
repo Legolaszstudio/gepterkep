@@ -228,7 +228,7 @@ class FloorplanView extends React.Component {
         const objects = canvas.getObjects();
         for (const object of objects) {
             if (object.custom.type === 'Area') {
-                attachAreaClick(object, this.props.navigate);
+                attachAreaClick(object, this.props.navigate, this.canvas, this.saveCanvas);
                 object.set('hoverCursor', 'pointer');
             } else if (object.custom.type === 'Marker') {
                 this.attachMarkerClick(object);
@@ -270,7 +270,11 @@ class FloorplanView extends React.Component {
     }
 
     setupCanvas() {
-        this.canvas = new fabric.Canvas('canvas');
+        this.canvas = new fabric.Canvas('canvas', {
+            fireRightClick: true,
+            fireMiddleClick: true,
+            stopContextMenu: true,
+        });
         const canvas = this.canvas;
 
         this.loadFloorplan(canvas);
@@ -725,7 +729,7 @@ function handleNewAreaSelection(canvas) {
                     name: swalResult.value.areaName,
                 });
                 canvas.add(polygon);
-                attachAreaClick(polygon, that.navigate);
+                attachAreaClick(polygon, that.navigate, canvas, that.saveCanvas);
                 canvas.renderAll();
                 that.saveCanvas();
             }
@@ -895,9 +899,43 @@ function handleZoom(canvas) {
     });
 }
 
-function attachAreaClick(area, navigate) {
-    area.on('mousedown', () => {
-        if (!window.unlocked) navigate(window.location.pathname + '/' + area.custom.id)
+function attachAreaClick(area, navigate, canvas, saveCanvas) {
+    area.on('mousedown', async (e) => {
+        if (e.button === 3) {
+            console.log(e);
+            const res = await Swal.fire({
+                title: e.target.custom.name,
+                showConfirmButton: false,
+                showDenyButton: true,
+                denyButtonText: "Törlés",
+                showCancelButton: true,
+            });
+            if (res.isDenied) {
+                await delay(5);
+                const confirm = await Swal.fire({
+                    title: e.target.custom.name + " törlése",
+                    text: "Ez a terület és az összes alterülete a benne található objektummokkal együtt törlésre fog kerülni!",
+                    showDenyButton: true,
+                    denyButtonText: "Törlés",
+                    showCancelButton: true,
+                    showConfirmButton: false,
+                }); 
+
+                if (confirm.isDenied) {
+                    showSpinner();
+                    globals.computerData.objects = globals.computerData.objects.filter(x => !x.path.includes(window.location.pathname + '/' + area.custom.id));
+
+                    canvas.remove(e.target);
+                    await delay(750);
+                    saveCanvas();
+                    await delay(750);
+                    canvas.renderAll();
+                    await delay(750);
+                    hideSpinner();
+                }
+            }
+        }
+        if (!window.unlocked && e.button === 1) navigate(window.location.pathname + '/' + area.custom.id)
     });
 }
 
