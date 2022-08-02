@@ -143,7 +143,7 @@ class Search extends React.Component {
     render() {
         return (
             <div className="search">
-                <div style={{ height: '15vh' }}>
+                <div style={{ height: '15vh', minHeight: '150px' }}>
                     <h1 style={{ textAlign: 'center' }}>Keresés</h1>
                     <div style={{ display: 'flex', justifyContent: 'space-around' }} className="searchSettings">
                         <div>
