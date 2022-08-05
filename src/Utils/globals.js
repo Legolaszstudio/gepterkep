@@ -1,6 +1,6 @@
 import Swal from 'sweetalert2';
 
-const globals = {
+export const globals = {
     computerData: null,
 };
 

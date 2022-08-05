@@ -1,3 +1,18 @@
 .MainComponent {
     text-align: center;
 }
+
+.remoteCard {
+    background-color: white;
+    display: inline-block;
+    padding: 20px;
+}
+
+.remoteList {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-around;
+    align-content: center;
+}
