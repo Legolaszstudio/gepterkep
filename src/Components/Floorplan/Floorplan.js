@@ -6,7 +6,7 @@ import Swal from "sweetalert2";
 import { hideSpinner, showSpinner } from "../Spinner/Spinner";
 import { delay } from "../../Utils/delay";
 import { exportFile } from "../../Utils/exportFile";
-import {saveToCloud, createInCloud} from "../../Utils/saveToCloud";
+import { saveToCloud, createInCloud } from "../../Utils/saveToCloud";
 import config from "../../config";
 
 class Floorplan extends React.Component {
@@ -340,10 +340,10 @@ class Floorplan extends React.Component {
                         <img alt="" src="database-search.svg" className="floorPrevImg"></img>
                         <h3>Keresés</h3>
                     </div>
-                    { config.isRemoteEnabled ? <div className="floorplanCard" onClick={window.isNetworkMap === true ? saveToCloud : createInCloud}>
+                    {config.isRemoteEnabled ? <div className="floorplanCard" onClick={window.isNetworkMap === true ? saveToCloud : async () => { await createInCloud(); this.setState({}) }}>
                         <img alt="" src="database-arrow-up.svg" className="floorPrevImg"></img>
                         <h3>{window.isNetworkMap === true ? "Mentés szerverre" : "Feltöltés a szerverre"}</h3>
-                    </div> : null }
+                    </div> : null}
                     <div className="floorplanCard" onClick={exportFile}>
                         <img alt="" src="database-export.svg" className="floorPrevImg"></img>
                         <h3>Export</h3>

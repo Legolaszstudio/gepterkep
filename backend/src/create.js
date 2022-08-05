@@ -18,5 +18,5 @@ exports.creationHandler = async (req, res) => {
 
     fs.writeFileSync(filePath, req.body.map);
 
-    return res.status(201).send('Created');
+    return res.status(201).send({status: 'Created', id: dbRes.lastID});
 }

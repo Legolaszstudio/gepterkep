@@ -159,6 +159,7 @@ class Main extends React.Component {
             try {
                 const res = await fetch(`${config.apiAddress}/api/rename`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
@@ -194,6 +195,7 @@ class Main extends React.Component {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json'
                         },
+                        credentials: 'include',
                         body: JSON.stringify({ id: element.id })
                     });
                     if (!res.ok) throw new Error('Something went wrong');

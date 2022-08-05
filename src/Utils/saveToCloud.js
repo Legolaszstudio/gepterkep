@@ -19,14 +19,17 @@ export async function createInCloud() {
     if (result.isDenied) {
         showSpinner();
         try {
-            await fetch(`${config.apiAddress}/api/create`, {
+            const result = await (await fetch(`${config.apiAddress}/api/create`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ name: globals.computerData.name, map: exportJson() })
-            });
+            })).json();
+            window.isNetworkMap = true;
+            window.mapId = result.id;
         } catch (err) {
             error("Hiba feltöltés közben", err);
         } finally {
@@ -51,6 +54,7 @@ export async function saveToCloud() {
         try {
             await fetch(`${config.apiAddress}/api/upload`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'

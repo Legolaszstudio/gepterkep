@@ -1,4 +1,8 @@
 const PORT = 3001;
+const users = { //"username": "password",
+    'admin': 'admin',
+};
+const origin = 'http://localhost:3000';
 
 const fastifyStatic = require('@fastify/static');
 const fastify = require('fastify')({
@@ -12,19 +16,61 @@ const dbPath = "./gepterkep_db.db"
 const sqlite3 = require('sqlite3').verbose();
 const sqlite = require('sqlite');
 
-fastify.get('/api/getAvailableMaps', require('./getAvailableMaps').getAvailableMaps);
-fastify.post('/api/upload', require('./upload').uploadHandler);
-fastify.post('/api/create', require('./create').creationHandler);
-fastify.post('/api/delete', require('./delete').deletionHandler);
-fastify.post('/api/rename', require('./rename').renameHandler);
+const authenticate = { realm: 'gepmap' }
+function validate(username, password, _req, reply, done) {
+    if (username in users) {
+        if (password === users[username]) {
+            reply.header("Access-Control-Allow-Origin", origin);
+            reply.header("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization, Referer, User-Agent");
+            reply.header("Access-Control-Allow-Credentials", "true");
+            done();
+            console.log("Successful login");
+            return;
+        }
+    }
+
+    done(new Error('Invalid username or password!'));
+}
+fastify.register(require('@fastify/basic-auth'), { validate, authenticate })
+
+fastify.after(() => {
+    fastify.route({
+        method: 'GET',
+        url: '/api/getAvailableMaps',
+        handler: require('./getAvailableMaps').getAvailableMaps
+    });
+    fastify.route({
+        method: 'POST',
+        url: '/api/upload',
+        handler: require('./upload').uploadHandler,
+        onRequest: fastify.basicAuth,
+    });
+    fastify.route({
+        method: 'POST',
+        url: '/api/create',
+        handler: require('./create').creationHandler,
+        onRequest: fastify.basicAuth,
+    });
+    fastify.route({
+        method: 'POST',
+        url: '/api/delete',
+        handler: require('./delete').deletionHandler,
+        onRequest: fastify.basicAuth,
+    });
+    fastify.route({
+        method: 'POST',
+        url: '/api/rename',
+        handler: require('./rename').renameHandler,
+        onRequest: fastify.basicAuth,
+    });
+});
 
 
-
-fastify.addHook('preHandler', (_req, reply, done) => {
-    //FIXME: testing use only
-    reply.header("Access-Control-Allow-Origin", "*");
-    reply.header("Access-Control-Allow-Headers", "*");
-    done()
+fastify.addHook('onSend', (_req, reply, _payload, done) => {
+    reply.header("Access-Control-Allow-Origin", origin);
+    reply.header("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization, Referer, User-Agent");
+    reply.header("Access-Control-Allow-Credentials", "true");
+    done();
 });
 
 fastify.register(fastifyStatic, {

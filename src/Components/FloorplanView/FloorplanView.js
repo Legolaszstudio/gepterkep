@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import { showSpinner, hideSpinner } from "../../Components/Spinner/Spinner";
 import { delay } from "../../Utils/delay";
 import { exportFile } from "../../Utils/exportFile";
+import { saveToCloud } from "../../Utils/saveToCloud"; 
 
 class FloorplanView extends React.Component {
     objMoving = false;
@@ -624,7 +625,7 @@ class FloorplanView extends React.Component {
             element.setAttribute('href', image);
             let filename;
             // eslint-disable-next-line eqeqeq
-            if (this.state.data == this.state.floorplan){
+            if (this.state.data == this.state.floorplan) {
                 filename = this.state.floorplan.name + ".png";
             } else {
                 filename = this.state.data.custom.name + ".png";
@@ -632,7 +633,7 @@ class FloorplanView extends React.Component {
             element.setAttribute('download', filename);
             element.style.display = 'none';
             document.body.appendChild(element);
-        
+
             element.click();
             document.body.removeChild(element);
         }
@@ -653,6 +654,7 @@ class FloorplanView extends React.Component {
                         <input type="button" className="btn btn-green mr-2" value="Új marker" onClick={this.newMarker}></input>
                         <input type="button" className={`btn ${window.unlocked ? "btn-red" : "btn-green"} mr-2`} value={window.unlocked ? "Mozgatás vége" : "Mozgatás"} id="moveBtn" onClick={this.moveBtnHandler}></input>
                         <input type="button" className="btn btn-blue mr-2" value="Export" onClick={this.exportClicked}></input>
+                        {window.isNetworkMap ? <input type="button" className="btn btn-blue mr-2" value="Mentés" onClick={saveToCloud}></input> : null}
                     </div>
                     <div id="newAreabtn" className="hide">
                         <input type="button" id="newAreabtn-done" className="btn btn-green mr-2" value="Kész"></input>
@@ -919,7 +921,7 @@ function attachAreaClick(area, navigate, canvas, saveCanvas) {
                     denyButtonText: "Törlés",
                     showCancelButton: true,
                     showConfirmButton: false,
-                }); 
+                });
 
                 if (confirm.isDenied) {
                     showSpinner();
