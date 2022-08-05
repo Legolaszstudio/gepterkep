@@ -1,5 +1,5 @@
 const config = {
-    isRemoteEnabled: true,
+    isRemoteEnabled: false,
     apiAddress: 'http://localhost:3001' // or set to '' (empty string) for same as frontend
 };
 

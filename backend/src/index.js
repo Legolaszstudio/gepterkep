@@ -24,7 +24,6 @@ function validate(username, password, _req, reply, done) {
             reply.header("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization, Referer, User-Agent");
             reply.header("Access-Control-Allow-Credentials", "true");
             done();
-            console.log("Successful login");
             return;
         }
     }
