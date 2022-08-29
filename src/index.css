@@ -110,6 +110,17 @@ code {
   color: white !important;
 }
 
+.btn-lblue {
+  color: black;
+  background-color: #91c7f2;
+  border-color: #91c7f2;
+}
+
+.btn-lblue:hover {
+  background-color: rgba(0, 0, 0, 0) !important;
+  color: white !important;
+}
+
 .mr-2 {
   margin-right: 10px;
 }
@@ -136,4 +147,8 @@ code {
 .floorPrevImg {
   width: 150px;
   height: auto;
+}
+
+.m-0 {
+  margin: 0;
 }

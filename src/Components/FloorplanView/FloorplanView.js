@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 import { showSpinner, hideSpinner } from "../../Components/Spinner/Spinner";
 import { delay } from "../../Utils/delay";
 import { exportFile } from "../../Utils/exportFile";
-import { saveToCloud } from "../../Utils/saveToCloud"; 
+import { saveToCloud } from "../../Utils/saveToCloud";
 
 class FloorplanView extends React.Component {
     objMoving = false;
@@ -22,11 +22,13 @@ class FloorplanView extends React.Component {
     state = {
         data: null,
         floorplan: null,
+        shownLayers: [0],
     };
     canvas;
 
     constructor(props) {
         super(props);
+        window.shownLayers = [0];
         this.setupCanvas = this.setupCanvas.bind(this);
         this.resizeCanvas = this.resizeCanvas.bind(this);
         this.newAreaPrepare = this.newAreaPrepare.bind(this);
@@ -40,6 +42,11 @@ class FloorplanView extends React.Component {
         this.attachMarkerClick = this.attachMarkerClick.bind(this);
         this.moveBtnHandler = this.moveBtnHandler.bind(this);
         this.exportClicked = this.exportClicked.bind(this);
+        this.layersClicked = this.layersClicked.bind(this);
+        window.deleteLayer = this.deleteLayer.bind(this);
+        this.newLayer = this.newLayer.bind(this);
+        this.updateShownLayers = this.updateShownLayers.bind(this);
+        window.updateShownLayers = this.updateShownLayers;
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -61,10 +68,14 @@ class FloorplanView extends React.Component {
                 this.setState({
                     data: this.state.floorplan,
                 });
+                // eslint-disable-next-line react/no-direct-mutation-state
+                this.state.shownLayers = window.shownLayers;
+
                 setTimeout(() => {
                     this.finishLoading = true;
                     hideSpinner();
                 }, 100);
+
                 return;
             }
 
@@ -123,11 +134,15 @@ class FloorplanView extends React.Component {
 
                     // update the canvas viewport
                     this.canvas.setViewportTransform([zoom, 0, 0, zoom, newLeft, newTop]);
+                    // eslint-disable-next-line react/no-direct-mutation-state
+                    this.state.shownLayers = window.shownLayers;
+
 
                     setTimeout(() => {
                         this.finishLoading = true;
                         hideSpinner();
                     }, 100);
+
                 });
             }, 100);
         }
@@ -160,7 +175,9 @@ class FloorplanView extends React.Component {
         this.setState({
             data: current,
             floorplan: current,
+            shownLayers: window.shownLayers,
         });
+        window.layers = current.layers;
         setTimeout(async () => {
             this.setupCanvas();
             const show = this.props.searchParams[0].get('show');
@@ -176,6 +193,7 @@ class FloorplanView extends React.Component {
             } else {
                 await delay(200);
             }
+            // Blink if opened from search menu
             if (show != null) {
                 const object = this.canvas.getObjects().find(x => x.custom?.name === show);
                 if (object == null) return;
@@ -229,7 +247,14 @@ class FloorplanView extends React.Component {
         const objects = canvas.getObjects();
         for (const object of objects) {
             if (object.custom.type === 'Area') {
-                attachAreaClick(object, this.props.navigate, this.canvas, this.saveCanvas);
+                attachAreaClick(
+                    object,
+                    this.props.navigate,
+                    this.canvas,
+                    this.saveCanvas,
+                    this.state.floorplan.layers,
+                    this.updateShownLayers,
+                );
                 object.set('hoverCursor', 'pointer');
             } else if (object.custom.type === 'Marker') {
                 this.attachMarkerClick(object);
@@ -244,6 +269,7 @@ class FloorplanView extends React.Component {
             canvas.loadFromJSON(jsonIn, () => {
                 this.attachCustomHandlers(canvas);
                 canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+                this.updateShownLayers();
             });
         } else {
             fabric.util.enlivenObjects(jsonIn, (objs) => {
@@ -252,6 +278,7 @@ class FloorplanView extends React.Component {
                     canvas.add(obj);
                 }
                 this.attachCustomHandlers(canvas);
+                this.updateShownLayers();
                 canvas.renderAll();
             });
         }
@@ -349,6 +376,11 @@ class FloorplanView extends React.Component {
         const result = await Swal.fire({
             title: template.name,
             html: `
+            <label for="selMenu">Réteg: </label>
+            <select id="selMenu" name="selMenu">
+                ${window.layers.map(elem => `<option value="${elem.id}" ${elem.id === 0 ? 'selected' : ''}>${elem.name} (${elem.id})</option>`).join('\n')}
+            </select>
+            <br><br>
             <input type="text" name="mName" id="mName" placeholder="Azonosító" class="swal2-input"></input>
             <div style="margin-top: 10px">
                 <label for="mColor">Szín</label>
@@ -377,6 +409,7 @@ class FloorplanView extends React.Component {
                     name: document.getElementById("mName").value,
                     color: document.getElementById("mColor").value,
                     fields: [],
+                    layer: parseInt(document.getElementById('selMenu').value),
                 };
 
                 if (data.name.length === 0) {
@@ -453,6 +486,12 @@ class FloorplanView extends React.Component {
         group.set('hoverCursor', 'pointer');
         this.attachMarkerClick(group);
 
+        if (!window.shownLayers.includes(group.custom.layer)) {
+            group.visible = false;
+            group.opacity = 0;
+            alert("A létrehozott objektum rétege nem aktív, ezért nem látni!");
+            window.updateShownLayers();
+        }
         this.canvas.add(group);
         this.canvas.renderAll();
         this.saveCanvas();
@@ -488,6 +527,12 @@ class FloorplanView extends React.Component {
             const result = await Swal.fire({
                 title: "Marker szerkesztése",
                 html: `
+                    <label for="selMenu">Réteg: </label>
+                    <select id="selMenu" name="selMenu">
+                        ${this.state.floorplan.layers.map(elem => `<option value="${elem.id}" ${elem.id === (marker.custom.layer ?? 0) ? 'selected' : ''}>${elem.name} (${elem.id})</option>`).join('\n')}
+                    </select>
+                    <br>
+                    <br>
                     <label for="mName">Azonosító</label><br>
                     <input id="mName" class="swal2-input" style="margin-top: 0"value="${marker.custom.name}">
                     <br>
@@ -516,6 +561,7 @@ class FloorplanView extends React.Component {
                         name: document.getElementById("mName").value,
                         color: document.getElementById("mColor").value,
                         fields: [],
+                        layer: parseInt(document.getElementById('selMenu').value),
                     };
 
                     if (data.name.length === 0) {
@@ -567,6 +613,13 @@ class FloorplanView extends React.Component {
                     marker.custom.fields = result.value.fields;
                     changed = true;
                     globals.computerData.objects.find(x => x.name === result.value.name).fields = marker.custom.fields;
+                }
+
+                if (result.value.layer !== (marker.custom.layer ?? 0)) {
+                    marker.custom.layer = result.value.layer;
+                    changed = true;
+                    await delay(750);
+                    this.updateShownLayers();
                 }
 
                 this.setState({});
@@ -645,6 +698,134 @@ class FloorplanView extends React.Component {
         this.setState({});
     }
 
+    async layersClicked() {
+        const layers = this.state.floorplan.layers;
+        layers.sort((a, b) => b.id - a.id);
+        const res = await Swal.fire({
+            title: 'Rétegek',
+            showCancelButton: true,
+            confirmButtonText: 'OK',
+            html: `
+                ${layers.map(element => `<div class="row">
+                    <input id="sl${element.id}" type="checkbox" value="1" ${this.state.shownLayers.includes(element.id) ? 'checked' : ''} />
+                    <p class="m-0">${element.name}</p>
+                    ${element.id === 0 ? '' : `<img class="cp" style="width: 40px; height: 40px" src="/delete-circle.svg" onclick="deleteLayer(${element.id})"/>`}
+                </div>`).join("\n")}
+            `,
+            preConfirm: () => {
+                // Update list of shown layers
+                const sLayers = [];
+                for (const layer of layers) {
+                    if (
+                        document.getElementById(`sl${layer.id}`)?.checked
+                    ) {
+                        sLayers.push(layer.id)
+                    }
+                }
+                return sLayers;
+            },
+            showDenyButton: true,
+            denyButtonText: "Új réteg",
+            denyButtonColor: '#7066e0',
+        });
+
+        if (res.isDenied) {
+            await delay(50);
+            this.newLayer();
+        } else if (res.isConfirmed && layers.sort().join(',') !== res.value.sort().join(',')) {
+            //Ok and layers to show changed
+            showSpinner();
+            this.setState({
+                shownLayers: res.value,
+            });
+            window.shownLayers = res.value;
+            await delay(500);
+            await this.updateShownLayers();
+            hideSpinner();
+        }
+    }
+
+    async updateShownLayers() {
+        showSpinner();
+        const objects = this.canvas.getObjects();
+        for (const object of objects) {
+            if (this.state.shownLayers.includes(object.custom.layer ?? 0)) {
+                object.visible = true;
+                object.opacity = 1;
+            } else {
+                object.visible = false;
+                object.opacity = 0;
+            }
+        }
+        this.canvas.renderAll();
+        await delay(500);
+        hideSpinner();
+    }
+
+    async newLayer() {
+        const layers = this.state.floorplan.layers;
+        layers.sort((a, b) => a.id - b.id);
+        const res = await Swal.fire({
+            title: 'Új réteg',
+            html: '<input id="layerName" class="swal2-input" placeholder="Név"/>',
+            preConfirm: () => {
+                const name = document.getElementById('layerName').value;
+                if (name.length === 0) {
+                    alert('Valamit adj meg!');
+                    return false;
+                }
+
+                if (layers.map(x => x.name).includes(name)) {
+                    alert('Ilyen réteg már létezik');
+                    return false;
+                }
+
+                return name;
+            },
+            showCancelButton: true,
+        });
+        const name = res.value;
+        if (res.isConfirmed) {
+            layers.push({
+                id: layers[layers.length - 1].id + 1,
+                name,
+            });
+            window.layers = layers;
+            await delay(500);
+            this.saveCanvas();
+            this.layersClicked();
+        }
+    }
+
+    async deleteLayer(id) {
+        if (id === 0) {
+            alert('Alapértelmezett réteget nem lehet törölni');
+            return;
+        }
+        Swal.close();
+        const layers = this.state.floorplan.layers;
+        const delLayer = layers.find(l => l.id === id);
+        const res = await Swal.fire({
+            title: `Réteg (${delLayer.name}) törlése`,
+            text: 'FIGYELEM! Törlés előtt a réteg elemeit manuálisan el kell távolítani vagy módosítani az elemek rétegét egy másikra!',
+            confirmButtonText: "OK",
+            showCancelButton: true,
+        });
+        if (res.isConfirmed) {
+            // eslint-disable-next-line react/no-direct-mutation-state
+            this.state.floorplan.layers = this.state.floorplan.layers.filter(x => x.id !== id);
+            window.layers = this.state.floorplan.layers;
+            const index = this.state.shownLayers.indexOf(id);
+            if (index > -1) {
+                this.state.shownLayers.splice(index, 1);
+                window.shownLayers = this.state.shownLayers;
+                this.setState({
+                    shownLayers: this.state.shownLayers,
+                });
+            }
+        }
+    }
+
     render() {
         return (
             <div className="floorplanview">
@@ -653,6 +834,7 @@ class FloorplanView extends React.Component {
                         <input type="button" className="btn btn-green mr-2" value="Új terület" onClick={this.newAreaPrepare}></input>
                         <input type="button" className="btn btn-green mr-2" value="Új marker" onClick={this.newMarker}></input>
                         <input type="button" className={`btn ${window.unlocked ? "btn-red" : "btn-green"} mr-2`} value={window.unlocked ? "Mozgatás vége" : "Mozgatás"} id="moveBtn" onClick={this.moveBtnHandler}></input>
+                        <input type="button" className="btn btn-lblue mr-2" value="Rétegek" onClick={this.layersClicked}></input>
                         <input type="button" className="btn btn-blue mr-2" value="Export" onClick={this.exportClicked}></input>
                         {window.isNetworkMap ? <input type="button" className="btn btn-blue mr-2" value="Mentés" onClick={saveToCloud}></input> : null}
                     </div>
@@ -697,6 +879,11 @@ function handleNewAreaSelection(canvas) {
             const swalResult = await Swal.fire({
                 title: "Terület létrehozása",
                 html: `
+                    <label for="selMenu">Réteg: </label>
+                    <select id="selMenu" name="selMenu">
+                        ${window.layers.map(elem => `<option value="${elem.id}" ${elem.id === 0 ? 'selected' : ''}>${elem.name} (${elem.id})</option>`).join('\n')}
+                    </select>
+                    <br><br>
                     <label for="areaName">Terület neve</label>
                     <input id="areaName" class="swal2-input">
                     <br>
@@ -708,6 +895,7 @@ function handleNewAreaSelection(canvas) {
                     const data = {
                         areaName: document.getElementById('areaName')?.value,
                         areaColor: document.getElementById('areaColor')?.value,
+                        layer: parseInt(document.getElementById('selMenu').value),
                     };
 
                     if (data.areaName.length === 0) {
@@ -729,9 +917,24 @@ function handleNewAreaSelection(canvas) {
                 polygon = finishPolygon(polygonPoints, {
                     color: swalResult.value.areaColor,
                     name: swalResult.value.areaName,
+                    layer: swalResult.value.layer,
                 });
                 canvas.add(polygon);
-                attachAreaClick(polygon, that.navigate, canvas, that.saveCanvas);
+                attachAreaClick(
+                    polygon,
+                    that.navigate,
+                    canvas,
+                    that.saveCanvas,
+                    window.layers,
+                    window.updateShownLayers,
+                );
+                if (!window.shownLayers.includes(polygon.custom.layer)) {
+                    polygon.visible = false;
+                    polygon.opacity = 0;
+                    alert("A létrehozott objektum rétege nem aktív, ezért nem látni!");
+                    window.updateShownLayers();
+                }
+                await delay(750);
                 canvas.renderAll();
                 that.saveCanvas();
             }
@@ -836,6 +1039,7 @@ function handleNewAreaSelection(canvas) {
             type: "Area",
             name: details.name,
             id: encodeURIComponent(details.name),
+            layer: details.layer ?? 0,
         });
 
         return group;
@@ -901,13 +1105,18 @@ function handleZoom(canvas) {
     });
 }
 
-function attachAreaClick(area, navigate, canvas, saveCanvas) {
+function attachAreaClick(area, navigate, canvas, saveCanvas, layers, updateShownLayers) {
     area.on('mousedown', async (e) => {
         if (e.button === 3) {
-            console.log(e);
             const res = await Swal.fire({
                 title: e.target.custom.name,
-                showConfirmButton: false,
+                html: `
+                <label for="selMenu">Réteg: </label>
+                <select id="selMenu" name="selMenu">
+                    ${layers.map(elem => `<option value="${elem.id}" ${elem.id === (e.target.custom.layer ?? 0) ? 'selected' : ''}>${elem.name} (${elem.id})</option>`).join('\n')}
+                </select>`,
+                preConfirm: () => parseInt(document.getElementById('selMenu').value),
+                showConfirmButton: true,
                 showDenyButton: true,
                 denyButtonText: "Törlés",
                 showCancelButton: true,
@@ -933,6 +1142,20 @@ function attachAreaClick(area, navigate, canvas, saveCanvas) {
                     await delay(750);
                     canvas.renderAll();
                     await delay(750);
+                    hideSpinner();
+                }
+            }
+            if (res.isConfirmed) {
+                if (res.value !== (e.target.custom.layer ?? 0)) {
+                    showSpinner();
+                    e.target.set('custom', {
+                        ...e.target.custom,
+                        layer: res.value,
+                    });
+                    await delay(750);
+                    await saveCanvas();
+                    await delay(750);
+                    await updateShownLayers();
                     hideSpinner();
                 }
             }

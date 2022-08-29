@@ -8,6 +8,7 @@ import { delay } from "../../Utils/delay";
 import { exportFile } from "../../Utils/exportFile";
 import { saveToCloud, createInCloud } from "../../Utils/saveToCloud";
 import config from "../../config";
+//TODO: Delatable maps
 
 class Floorplan extends React.Component {
     componentWillUnmount() {
@@ -148,6 +149,10 @@ class Floorplan extends React.Component {
             id: encodeURIComponent(inputs.planName),
             name: inputs.planName,
             image: result,
+            layers: [{
+                id: 0,
+                name: 'default',
+            }],
         });
         this.setState({
             computerData: globals.computerData,
