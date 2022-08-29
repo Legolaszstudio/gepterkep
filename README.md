@@ -23,3 +23,12 @@ Backend szerver telepítése (cd backend) -> npm install
 Backend szerver config fájl szerkesztése -> ./backend/src/config.js
 Backend szerver futattása -> npm start
 ```
+
+## Frontend debug
+
+```
+Frontend debug módban futattása -> npm start
+A frontend configot (./src/config.js) át kell szerkeszteni, hogy az apiAddress: http://localhost:3001
+
+A backend-nek nincsen debug módja, az simán (cd backend) -> npm start
+```
