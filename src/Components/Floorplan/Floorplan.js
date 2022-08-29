@@ -30,6 +30,7 @@ class Floorplan extends React.Component {
 
     componentDidMount() {
         document.title = "Főmenü - Gép Térkép";
+        // Go back if not loaded
         if (globals.computerData == null) {
             setTimeout(() => {
                 this.props.navigate("/", { replace: true });
@@ -144,6 +145,7 @@ class Floorplan extends React.Component {
         });
     }
 
+    /// Called after floorplan image is uploaded
     imageConverted(result, inputs) {
         globals.computerData.floorplans.push({
             id: encodeURIComponent(inputs.planName),
@@ -166,6 +168,7 @@ class Floorplan extends React.Component {
         };
     }
 
+    /// Edit the template clicked
     editCard(self) {
         return async () => {
             const result = await Swal.fire({
@@ -302,6 +305,29 @@ class Floorplan extends React.Component {
         };
     }
 
+    async floorplanMenu(e, element) {
+        e.preventDefault();
+        const res = await Swal.fire({
+            title: element.name,
+            showDenyButton: true,
+            denyButtonText: "Törlés",
+        });
+        if (res.isDenied) {
+            await delay(750);
+            const confirmResult = await Swal.fire({
+                title: element.name + " törlése",
+                text: 'Ez az alaprajz törlésre fog kerülni, örökre eleveszik!',
+                showDenyButton: true,
+                denyButtonText: "Törlés",
+                confirmButtonText: "Mégsem",
+            });
+            if (confirmResult.isDenied) {
+                globals.computerData.floorplans = globals.computerData.floorplans.filter(x => x.id !== element.id);
+                this.setState({ computerData: globals.computerData });
+            }
+        }
+    }
+
     render() {
         return (
             <div className="Floorplan">
@@ -309,7 +335,7 @@ class Floorplan extends React.Component {
                 <div className="FloorplanList">
                     {
                         this.state.computerData?.floorplans?.map(element =>
-                            <div key={"fpcard" + element.name} className="floorplanCard" onClick={this.navToView(element)}>
+                            <div key={"fpcard" + element.name} className="floorplanCard" onContextMenu={(e) => this.floorplanMenu(e, element)} onClick={this.navToView(element)}>
                                 <img className="floorPrevImg" src={element.image} alt=""></img>
                                 <h3>{element.name}</h3>
                             </div>
@@ -359,6 +385,7 @@ class Floorplan extends React.Component {
     }
 }
 
+// Egyéni minta mező törlése
 window.removeField = async (templateName, fieldName) => {
     if (window.confirm(`${fieldName} nevű mező törlésre fog kerülni!\nA létező objektumok nem fognak elveszni!`)) {
         const template = globals.computerData.templates.find(x => x.name === templateName);

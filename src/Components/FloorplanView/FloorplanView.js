@@ -11,6 +11,7 @@ import { saveToCloud } from "../../Utils/saveToCloud";
 
 class FloorplanView extends React.Component {
     objMoving = false;
+    /// Used to set zoom when viewing area
     mainBoundRect = {
         top: 0,
         left: 0,
