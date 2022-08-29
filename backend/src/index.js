@@ -1,8 +1,4 @@
-const PORT = 3001;
-const users = { //"username": "password",
-    'admin': 'admin',
-};
-const origin = 'http://localhost:3000';
+const config = require('./config');
 
 const fastifyStatic = require('@fastify/static');
 const fastify = require('fastify')({
@@ -18,9 +14,9 @@ const sqlite = require('sqlite');
 
 const authenticate = { realm: 'gepmap' }
 function validate(username, password, _req, reply, done) {
-    if (username in users) {
-        if (password === users[username]) {
-            reply.header("Access-Control-Allow-Origin", origin);
+    if (username in config.users) {
+        if (password === config.users[username]) {
+            reply.header("Access-Control-Allow-Origin", config.origin);
             reply.header("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization, Referer, User-Agent");
             reply.header("Access-Control-Allow-Credentials", "true");
             done();
@@ -42,31 +38,31 @@ fastify.after(() => {
         method: 'POST',
         url: '/api/upload',
         handler: require('./upload').uploadHandler,
-        onRequest: fastify.basicAuth,
+        onRequest: config.loginReq ? fastify.basicAuth : (_req, _res, done) => { done() },
     });
     fastify.route({
         method: 'POST',
         url: '/api/create',
         handler: require('./create').creationHandler,
-        onRequest: fastify.basicAuth,
+        onRequest: config.loginReq ? fastify.basicAuth : (_req, _res, done) => { done() },
     });
     fastify.route({
         method: 'POST',
         url: '/api/delete',
         handler: require('./delete').deletionHandler,
-        onRequest: fastify.basicAuth,
+        onRequest: config.loginReq ? fastify.basicAuth : (_req, _res, done) => { done() },
     });
     fastify.route({
         method: 'POST',
         url: '/api/rename',
         handler: require('./rename').renameHandler,
-        onRequest: fastify.basicAuth,
+        onRequest: config.loginReq ? fastify.basicAuth : (_req, _res, done) => { done() },
     });
 });
 
 
 fastify.addHook('onSend', (_req, reply, _payload, done) => {
-    reply.header("Access-Control-Allow-Origin", origin);
+    reply.header("Access-Control-Allow-Origin", config.origin);
     reply.header("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization, Referer, User-Agent");
     reply.header("Access-Control-Allow-Credentials", "true");
     done();
@@ -96,7 +92,7 @@ fastify.setNotFoundHandler((req, res) => {
 });
 
 
-fastify.listen({ port: PORT, host: '0.0.0.0' }, async function (err, address) {
+fastify.listen({ port: config.PORT, host: '0.0.0.0' }, async function (err, address) {
     if (err) {
         fastify.log.error(err);
         process.exit(1);
