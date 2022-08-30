@@ -1,4 +1,6 @@
 # GépTérkép
+[![wakatime](https://wakatime.com/badge/github/Legolaszstudio/gepterkep.svg)](https://wakatime.com/badge/github/Legolaszstudio/gepterkep)
+
 
 Eredeti célja, hogy számítógépeket lehessen elhelyezni egy térképen, majd vissza keresni.
 
