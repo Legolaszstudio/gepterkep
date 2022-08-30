@@ -24,10 +24,12 @@ class Main extends React.Component {
         this.remoteClicked = this.remoteClicked.bind(this);
     }
 
+    /** Go to a floorplan */
     navToFloorplan() {
         this.props.navigate("/floorplan", { replace: true });
     }
 
+    /** Create new project menu */
     newProject() {
         const that = this;
         Swal.fire({
@@ -57,6 +59,7 @@ class Main extends React.Component {
         });
     }
 
+    /** Load data from user provided file */
     loadJson() {
         let input, file, fr;
 
@@ -85,6 +88,7 @@ class Main extends React.Component {
         }
     }
 
+    /** Parse user uploaded project data (called by `loadJson`) */
     async receivedText(e) {
         let lines = e.target.result;
         try {
@@ -117,6 +121,7 @@ class Main extends React.Component {
         if (config.isRemoteEnabled) this.getRemoteData();
     }
 
+    /** Get list of projects on the server */
     async getRemoteData() {
         const res = await (await fetch(config.apiAddress + "/api/getAvailableMaps")).json();
         this.setState({
@@ -124,6 +129,7 @@ class Main extends React.Component {
         });
     }
 
+    /** Called when user selects floorplan from server */
     async remoteClicked(inpId) {
         showSpinner();
         const res = await (await fetch(`${config.apiAddress}/maps/${inpId}.gepmap`)).text();
@@ -137,6 +143,7 @@ class Main extends React.Component {
         hideSpinner();
     }
 
+    /** Show options for remote projects (right click) */
     async editRemote(event, element) {
         event?.preventDefault();
         const result = await Swal.fire({

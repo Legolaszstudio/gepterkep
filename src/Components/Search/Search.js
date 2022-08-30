@@ -7,7 +7,9 @@ import { delay } from "../../Utils/delay";
 import Swal from "sweetalert2";
 
 class Search extends React.Component {
+    /** All available object types in this project */
     objTypes = new Set();
+    /** All custom fields in this project */
     fields = new Set();
     state = {
         results: globals.computerData?.objects ?? [],
@@ -31,6 +33,7 @@ class Search extends React.Component {
         }
     }
 
+    /** Initialize the search engine */
     prepareSearch() {
         showSpinner();
         for (const item of globals.computerData.objects) {
@@ -48,19 +51,24 @@ class Search extends React.Component {
         hideSpinner();
     }
 
+    /** Search query updated, we should update the results */
     async searchUpdate(search) {
         const val = search.target.value;
 
         let searchObjs = globals.computerData.objects;
+
+        // Filter for specific type of object
         const filterTempl = document.getElementById('searchFilter').value;
         if (filterTempl !== 'all') {
             searchObjs = searchObjs.filter(obj => obj.type === filterTempl);
         }
 
+        // Include all results which include the search query
         this.setState({
             results: searchObjs.filter(obj => obj.name.toLowerCase().includes(val.toLowerCase()))
         });
 
+        // If allowed, search custom fields for the search query
         const searchInCustomFields = document.getElementById("sInField").checked;
         if (searchInCustomFields) {
             await delay(5);
@@ -79,6 +87,7 @@ class Search extends React.Component {
             });
         }
 
+        // If allowed, search by the path (area name)
         const searchInPath = document.getElementById("sInPath").checked;
         if (searchInPath) {
             await delay(5);
@@ -95,6 +104,7 @@ class Search extends React.Component {
             });
         }
 
+        // If enabled, sort results by abc
         const sortResults = document.getElementById("sortRes").checked;
         if (sortResults) {
             await delay(5);
@@ -106,6 +116,7 @@ class Search extends React.Component {
         }
     }
 
+    /** Result card clicked menu */
     async cardClicked(obj) {
         const result = await Swal.fire({
             title: "Találat megtekintése",

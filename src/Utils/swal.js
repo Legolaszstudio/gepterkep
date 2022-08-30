@@ -1,3 +1,4 @@
+// Basic alert message templates
 import Swal from 'sweetalert2';
 
 const Toast = Swal.mixin({

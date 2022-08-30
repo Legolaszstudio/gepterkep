@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const index = require('./index');
 
+/** Create new map in database and filesystem */
 exports.creationHandler = async (req, res) => {
     const date = Date.now();
 

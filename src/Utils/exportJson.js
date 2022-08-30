@@ -1,5 +1,8 @@
 import globals from "./globals";
 
+/**
+ * Create JSON data from workspace and return it as a string
+ */
 export function exportJson() {
     globals.computerData.export = new Date().toISOString();
     let stringified = JSON.stringify(globals.computerData);

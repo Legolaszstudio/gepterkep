@@ -5,6 +5,7 @@ import { exportJson } from './exportJson';
 import { showSpinner, hideSpinner } from '../Components/Spinner/Spinner';
 import { globals } from './globals';
 
+/** Create a new map on the server */
 export async function createInCloud() {
     const result = await Swal.fire({
         icon: 'warning',
@@ -19,7 +20,7 @@ export async function createInCloud() {
     if (result.isDenied) {
         showSpinner();
         try {
-            const result = await (await fetch(`${config.apiAddress}/api/create`, {
+            const netresult = await (await fetch(`${config.apiAddress}/api/create`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -29,7 +30,7 @@ export async function createInCloud() {
                 body: JSON.stringify({ name: globals.computerData.name, map: exportJson() })
             })).json();
             window.isNetworkMap = true;
-            window.mapId = result.id;
+            window.mapId = netresult.id;
         } catch (err) {
             error("Hiba feltöltés közben", err);
         } finally {
@@ -38,6 +39,7 @@ export async function createInCloud() {
     }
 }
 
+/** Upload current workspace state to server */
 export async function saveToCloud() {
     const result = await Swal.fire({
         icon: 'warning',

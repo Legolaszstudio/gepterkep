@@ -14,11 +14,13 @@ class Spinner extends React.Component {
 }
 
 
+/** Show spinner modal */
 export function showSpinner() {
     document.getElementById('spinner').classList.remove("hide");
     document.getElementById('spinner').classList.add("fadein");
 }
 
+/** Hide spinner modal */
 export function hideSpinner() {
     document.getElementById('spinner').classList.remove("fadein");
     document.getElementById('spinner').classList.add("hide");

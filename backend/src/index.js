@@ -8,11 +8,12 @@ const fastify = require('fastify')({
 const path = require('path');
 const fs = require('fs');
 
-const dbPath = "./gepterkep_db.db"
+const dbPath = "./gepterkep_db.db"; // Database path and filename
 const sqlite3 = require('sqlite3').verbose();
 const sqlite = require('sqlite');
 
 const authenticate = { realm: 'gepmap' }
+/** Authentication verification, determines if user is authenticated */
 function validate(username, password, _req, reply, done) {
     if (username in config.users) {
         if (password === config.users[username]) {
@@ -28,6 +29,7 @@ function validate(username, password, _req, reply, done) {
 }
 fastify.register(require('@fastify/basic-auth'), { validate, authenticate })
 
+/** All of our custom routes */
 fastify.after(() => {
     fastify.route({
         method: 'GET',
@@ -60,7 +62,7 @@ fastify.after(() => {
     });
 });
 
-
+/** Add headers before sending request */
 fastify.addHook('onSend', (_req, reply, _payload, done) => {
     reply.header("Access-Control-Allow-Origin", config.origin);
     reply.header("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization, Referer, User-Agent");
@@ -68,6 +70,7 @@ fastify.addHook('onSend', (_req, reply, _payload, done) => {
     done();
 });
 
+/** Serve all files from public directory */
 fastify.register(fastifyStatic, {
     root: path.join(__dirname, '../public'),
 });
@@ -92,6 +95,7 @@ fastify.setNotFoundHandler((req, res) => {
 });
 
 
+// Listen on all hosts and config port
 fastify.listen({ port: config.PORT, host: '0.0.0.0' }, async function (err, address) {
     if (err) {
         fastify.log.error(err);
@@ -111,6 +115,8 @@ fastify.listen({ port: config.PORT, host: '0.0.0.0' }, async function (err, addr
         filename: dbPath,
         driver: sqlite3.cached.Database,
     });
+    // Create tables
     await exports.db.run('CREATE TABLE IF NOT EXISTS Maps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL,"create" INTEGER NOT NULL,"edit" INTEGER NOT NULL);');
+    // Ready to rock
     fastify.log.info(`Server listening on ${address}`);
 });

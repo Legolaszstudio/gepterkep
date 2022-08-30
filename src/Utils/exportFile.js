@@ -1,6 +1,9 @@
 import globals from './globals';
 import { exportJson } from './exportJson';
 
+/**
+ * Save workspace with all data as a gepmap file, and start downloading it
+ */
 export function exportFile() {
     const res = exportJson();
 

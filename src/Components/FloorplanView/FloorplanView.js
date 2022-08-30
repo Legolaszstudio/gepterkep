@@ -10,14 +10,17 @@ import { exportFile } from "../../Utils/exportFile";
 import { saveToCloud } from "../../Utils/saveToCloud";
 
 class FloorplanView extends React.Component {
+    /** Determine if object is being moved around */
     objMoving = false;
-    /// Used to set zoom when viewing area
+    /** Used to set zoom when viewing area */
     mainBoundRect = {
         top: 0,
         left: 0,
     };
 
+    /** Track if we are loaded */
     firstUpdate = true;
+    /** Track if we are loaded */
     finishLoading = true;
 
     state = {
@@ -51,6 +54,7 @@ class FloorplanView extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
+        // Check if url has changed
         if (prevProps?.props?.params['*'] !== this.props.params['*']) {
             if (this.firstUpdate) { this.firstUpdate = false; return }
             if (!this.finishLoading) return;
@@ -59,6 +63,7 @@ class FloorplanView extends React.Component {
             const urlParams = this.props.params['*'].split("/");
             document.title = this.props.params['*'] + " - Gép Térkép";
 
+            // If params is 1 long, it means that we only load a floorplan, not an area
             if (urlParams.length === 1) {
                 this.canvas.clear();
                 this.loadFloorplan(this.canvas);
@@ -84,6 +89,7 @@ class FloorplanView extends React.Component {
             let currentFinder = current;
             let parent;
 
+            // Iterate through all the url segments and find each corresponding area
             for (let i = 1; i < urlParams.length; i++) {
                 current = currentFinder.find(x => {
                     return x.custom.name === urlParams[i] || x.custom.id === urlParams[i];
@@ -183,6 +189,7 @@ class FloorplanView extends React.Component {
             this.setupCanvas();
             const show = this.props.searchParams[0].get('show');
             if (urlParams.length > 1) {
+                // Slowly 'click' through all the areas
                 for (let i = 0; i < urlParams.length; i++) {
                     const segments = urlParams.slice(0, i + 1).join('/');
                     const url = '/floorplanview/' + segments;
@@ -210,6 +217,7 @@ class FloorplanView extends React.Component {
         }, 100);
     }
 
+    /** Save current fabric state into global object */
     saveCanvas() {
         // Double equ to check if same obj
         // eslint-disable-next-line eqeqeq
@@ -244,6 +252,10 @@ class FloorplanView extends React.Component {
         }, { cssOnly: true });
     }
 
+    /**
+     * Our own click handler methods get attached here
+     * @param {*} canvas 
+     */
     attachCustomHandlers(canvas) {
         const objects = canvas.getObjects();
         for (const object of objects) {
@@ -265,6 +277,12 @@ class FloorplanView extends React.Component {
         canvas.renderAll();
     }
 
+    /**
+     * Load canvas from saved data
+     * @param {*} jsonIn The json to load from
+     * @param {*} canvas 
+     * @param {boolean} fullLoad If true, overwrite entire canvas, otherwise just load the objects
+     */
     loadCanvasJson(jsonIn, canvas, fullLoad = true) {
         if (fullLoad) {
             canvas.loadFromJSON(jsonIn, () => {
@@ -285,6 +303,11 @@ class FloorplanView extends React.Component {
         }
     }
 
+    /**
+     * Load a floorplan
+     * @param {*} canvas 
+     * @param {*} bgOnly if true it only loads an image, else it loads an entire canvas 
+     */
     loadFloorplan(canvas, bgOnly = false) {
         fabric.Image.fromURL(this.state.floorplan?.image, (image) => {
             canvas.setHeight(image.height);
@@ -298,6 +321,7 @@ class FloorplanView extends React.Component {
         });
     }
 
+    /** Called upon init, to start a new canvas */
     setupCanvas() {
         this.canvas = new fabric.Canvas('canvas', {
             fireRightClick: true,
@@ -339,6 +363,7 @@ class FloorplanView extends React.Component {
         });
     }
 
+    /** Show the area selection lines upon clicking */
     newAreaPrepare() {
         document.getElementById('defaultbtn').classList.add('hide');
         document.getElementById('newAreabtn').classList.remove('hide');
@@ -346,6 +371,7 @@ class FloorplanView extends React.Component {
         window.unlocked = true;
     }
 
+    /** Create a new marker menu (shows available templates) */
     async newMarker() {
         for (const template of globals.computerData.templates) {
             setTimeout(() => {
@@ -371,6 +397,7 @@ class FloorplanView extends React.Component {
         });
     }
 
+    /** Enter details for selected template (called by `newMarker`) */
     async newMarkerTemplateSelected(template) {
         Swal.close();
         await delay(500);
@@ -457,6 +484,12 @@ class FloorplanView extends React.Component {
         }
     }
 
+    /**
+     * Fabric object was created for the new element (called by `newMarkerTemplateSelected`)
+     * @param {*} icon Fabric object
+     * @param {*} data Custom values
+     * @param {*} template Template which the object was created from
+     */
     newMarkerImageLoaded(icon, data, template) {
         icon.scaleToWidth(150);
         icon.set({
@@ -498,6 +531,7 @@ class FloorplanView extends React.Component {
         this.saveCanvas();
     }
 
+    /** Custom handler when clicking on a marker */
     attachMarkerClick(marker) {
         const that = this;
         marker.on('mousedown', async (opts) => {
@@ -659,6 +693,7 @@ class FloorplanView extends React.Component {
         });
     }
 
+    /** Called when the export button is clicked */
     async exportClicked() {
         const res = await Swal.fire({
             title: "Export módja",
@@ -671,6 +706,7 @@ class FloorplanView extends React.Component {
         if (res.isConfirmed) {
             exportFile();
         } else if (res.isDenied) {
+            // Save a png image of the current canvas and download it
             const image = this.canvas.toDataURL({
                 format: 'png',
                 quality: 1,
@@ -694,11 +730,13 @@ class FloorplanView extends React.Component {
         hideSpinner();
     }
 
+    /** Change unlock state (on move button press) */
     moveBtnHandler() {
         window.unlocked = !window.unlocked;
         this.setState({});
     }
 
+    /** Called when layers button is clicked, shows available layers menu */
     async layersClicked() {
         const layers = this.state.floorplan.layers;
         layers.sort((a, b) => b.id - a.id);
@@ -746,6 +784,7 @@ class FloorplanView extends React.Component {
         }
     }
 
+    /** Update the layers shown based on the current state */
     async updateShownLayers() {
         showSpinner();
         const objects = this.canvas.getObjects();
@@ -763,6 +802,7 @@ class FloorplanView extends React.Component {
         hideSpinner();
     }
 
+    /** Create a new layer menu */
     async newLayer() {
         const layers = this.state.floorplan.layers;
         layers.sort((a, b) => a.id - b.id);
@@ -798,6 +838,10 @@ class FloorplanView extends React.Component {
         }
     }
 
+    /**
+     * Show delete layer dialog
+     * @param {number} id Layers id
+     */
     async deleteLayer(id) {
         if (id === 0) {
             alert('Alapértelmezett réteget nem lehet törölni');
@@ -853,6 +897,7 @@ class FloorplanView extends React.Component {
     }
 }
 
+/** Custom function to create the lines when creating a new area */
 function handleNewAreaSelection(canvas) {
     let x = 0;
     let y = 0;
@@ -865,6 +910,7 @@ function handleNewAreaSelection(canvas) {
     drawingObject.background = "";
     drawingObject.border = "";
 
+    /** Called when area selection is finished (btn pressed) */
     async function done(opts, that) {
         window.unlocked = false;
         const elementId = opts.srcElement.id;
@@ -945,6 +991,7 @@ function handleNewAreaSelection(canvas) {
         }
     }
 
+    /** Called when area selection has ended */
     function resetAreaSelection() {
         polygonPoints = [];
         lines = [];
@@ -973,6 +1020,7 @@ function handleNewAreaSelection(canvas) {
         y = pointer.y;
     }
 
+    /** Create a new point when clicking */
     canvas.on('mouse:down', (options) => {
         if (this.areaSelect && !options.e.altKey) {
             canvas.selection = false;
@@ -992,6 +1040,7 @@ function handleNewAreaSelection(canvas) {
         }
     });
 
+    /** Line should follow the mouse */
     canvas.on('mouse:move', function (options) {
         if (lines[0] !== null && lines[0] !== undefined && this.areaSelect) {
             setStartingPoint(options);
@@ -1003,6 +1052,7 @@ function handleNewAreaSelection(canvas) {
         }
     });
 
+    /** When selection is done create the finished polygon */
     function finishPolygon(polygonPointsInput, details) {
         const left = findLeftPaddingForRoof(polygonPointsInput);
         const top = findTopPaddingForRoof(polygonPointsInput);
@@ -1067,6 +1117,7 @@ function handleNewAreaSelection(canvas) {
     }
 }
 
+/** Event handlers for zooming and panning */
 function handleZoom(canvas) {
     canvas.on('mouse:wheel', (opt) => {
         let delta = opt.e.deltaY;
@@ -1106,9 +1157,11 @@ function handleZoom(canvas) {
     });
 }
 
+/** Custom handler when an area is clicked.  */
 function attachAreaClick(area, navigate, canvas, saveCanvas, layers, updateShownLayers) {
     area.on('mousedown', async (e) => {
         if (e.button === 3) {
+            // Right click
             const res = await Swal.fire({
                 title: e.target.custom.name,
                 html: `
@@ -1161,6 +1214,7 @@ function attachAreaClick(area, navigate, canvas, saveCanvas, layers, updateShown
                 }
             }
         }
+        // Left click
         if (!window.unlocked && e.button === 1) navigate(window.location.pathname + '/' + area.custom.id)
     });
 }

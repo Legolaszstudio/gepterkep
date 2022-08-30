@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const index = require('./index');
 
+/** Update existing project */
 exports.uploadHandler = async (req, res) => {
     const filePath = path.join(__dirname, '../public/maps', `${req.body.id}.gepmap`);
 

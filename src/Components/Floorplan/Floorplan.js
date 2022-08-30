@@ -8,7 +8,6 @@ import { delay } from "../../Utils/delay";
 import { exportFile } from "../../Utils/exportFile";
 import { saveToCloud, createInCloud } from "../../Utils/saveToCloud";
 import config from "../../config";
-//TODO: Delatable maps
 
 class Floorplan extends React.Component {
     componentWillUnmount() {
@@ -38,6 +37,7 @@ class Floorplan extends React.Component {
         }
     }
 
+    /** Create new element template window */
     async newTemplate() {
         const result = await Swal.fire({
             title: "Új minta",
@@ -99,6 +99,7 @@ class Floorplan extends React.Component {
         }
     }
 
+    /** Create new floorplan window */
     newFloorplan() {
         const self = this;
         Swal.fire({
@@ -145,7 +146,7 @@ class Floorplan extends React.Component {
         });
     }
 
-    /// Called after floorplan image is uploaded
+    /** Called after floorplan image is uploaded */
     imageConverted(result, inputs) {
         globals.computerData.floorplans.push({
             id: encodeURIComponent(inputs.planName),
@@ -162,13 +163,14 @@ class Floorplan extends React.Component {
         hideSpinner();
     }
 
+    /** Navigate to floorplan (called when a floorplan is clicked) */
     navToView(element) {
         return () => {
             this.props.navigate("/floorplanview/" + element.id);
         };
     }
 
-    /// Edit the template clicked
+    /** Edit the template clicked */
     editCard(self) {
         return async () => {
             const result = await Swal.fire({
@@ -305,6 +307,7 @@ class Floorplan extends React.Component {
         };
     }
 
+    /** Floorplan settings (called when a floorplan is right clicked) */
     async floorplanMenu(e, element) {
         e.preventDefault();
         const res = await Swal.fire({
@@ -385,7 +388,7 @@ class Floorplan extends React.Component {
     }
 }
 
-// Egyéni minta mező törlése
+/** Egyéni mező törlése (külső függvény mert nem swal csak így tudja megívni) */ 
 window.removeField = async (templateName, fieldName) => {
     if (window.confirm(`${fieldName} nevű mező törlésre fog kerülni!\nA létező objektumok nem fognak elveszni!`)) {
         const template = globals.computerData.templates.find(x => x.name === templateName);
